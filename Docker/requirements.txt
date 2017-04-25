@@ -1,0 +1,16 @@
+beautifulsoup4==4.5.3
+bs4==0.0.1
+nltk==3.2.2
+numpy==1.12.1
+pandas==0.19.2
+python-dateutil==2.6.0
+pytz==2017.2
+requests==2.13.0
+scikit-learn==0.18.1
+scipy==0.19.0
+six==1.10.0
+tqdm==4.11.2
+vaderSentiment==2.5
+virtualenv==15.0.1
+xgboost==0.6a2
+xlrd
