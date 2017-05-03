@@ -360,4 +360,4 @@ class dereksdocker():
         export_model(train_model,results, self.filename)                 # save model to disk
         run_time = time.time() - start_time
         print "Ran in %.3f seconds" % run_time
-        return
+        return True
