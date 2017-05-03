@@ -9,4 +9,4 @@ filenames = glob.glob('examples/*')
 print filenames 
 
 for filename in filenames:
-	dereksdocker(filename=filename,speed=speed).run()
+	dereksdocker(filename=filename).run()
