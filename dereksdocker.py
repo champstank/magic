@@ -68,6 +68,7 @@ def export_model(model,results,filename):
         True
     """
     basename = filename.split('.')[0]
+    basename = basename.split('/')[-1]  # ignore folder names
     # calculate the hash on filename
     file_hash = hashfile(filename)
     new_filename = basename + '_' + file_hash + '.p'
@@ -119,10 +120,12 @@ class dereksdocker():
             self.df = df[df.columns[::-1]]
             self.data_type='text'
             print self.df[:2]   #data frame preview
-        else:
+        elif self.filename.split('.')[-1].lower()=='xls':
             print "excel detected"
             self.df = pd.read_excel(self.filename)
             self.data_type='excel'
+        else:
+            print filename+": is not supported yet!"
         return self.df
     
     def word_pipeline(self,word):
