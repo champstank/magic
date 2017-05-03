@@ -14,7 +14,7 @@ docker run --rm latest /bin/sh -c "python demo.py"
 
 ### Example run for text 
 docker run --rm latest /bin/sh -c "python magic/run.py examples/sentiment.tsv"
-
+___
 This is a text, bag of words model
 classification detected
 Binary detected!
@@ -31,7 +31,7 @@ Binary detected!
                          [274 742]]
       accuracy : 0.7055
 Ran in 0.379 seconds
-
+___
 #### Output 
 
 ### Example run for regression 
@@ -43,8 +43,8 @@ docker run --rm latest /bin/sh -c "python magic/run.py examples/auto-mgp.csv"
 docker run --rm latest /bin/sh -c "python magic/run.py examples/loan_approval.csv"
 
 #### Output
+___
 Binary detected! 
-|----------------:|---------------------------------:|
       f1_score : 0.385656924083
       observation_count : 32560
       average_precision_score : 0.580384394898
@@ -58,3 +58,4 @@ Binary detected!
                          [ 5776  2065]]
       accuracy : 0.797942260442
 Ran in 5.348 seconds
+___
