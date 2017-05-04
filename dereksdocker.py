@@ -336,7 +336,11 @@ class dereksdocker():
 
                 ypred_class[test_index] = model.predict(X_test)
                 ypred_prob[test_index] = model.predict_proba(X_test)[:,1] 
-        
+                
+                print('--------------------------------------------')
+                self.scoring(y,ypred_class,ypred_prob)
+                print('auc-score = ', self.results['auc_score'])
+            
         self.y_pred = ypred_class
         model.fit(X,y)       # training on whole dataset now
         self.model = model
@@ -361,17 +365,17 @@ class dereksdocker():
             else:
                 self.model = LogisticRegression()
         else:   # must be fast
-            if self.data_type=='text':   # sparse matrix 
+            #if self.data_type=='text':   # sparse matrix 
                 
-                if is_regression(y):
-                    self.model = xgboost.XGBRegressor()
-                else:
-                    self.model = xgboost.XGBClassifier()
+            if is_regression(y):
+                self.model = xgboost.XGBRegressor()
             else:
-                if is_regression(y):
-                    self.model = ensemble.GradientBoostingRegressor()
-                else:
-                    self.model = ensemble.GradientBoostingClassifier()                        # define a model
+                self.model = xgboost.XGBClassifier()
+            #else:
+            if is_regression(y):
+                self.model = ensemble.GradientBoostingRegressor(verbose=True)
+            else:
+                self.model = ensemble.GradientBoostingClassifier(verbose=True)                        # define a model
 
             # HYPER PARAM TUNING
             # model = gridsearch()
@@ -386,7 +390,7 @@ class dereksdocker():
             param_dist = {
                 'learning_rate' : [0.0001, 0.001, 0.0015, 0.01, 0.1, 0.15, 0.02, 0.2, 0.03, 0.3]
             }
-            self.model = RandomizedSearchCV(self.model, param_distributions=param_dist)
+            #self.model = RandomizedSearchCV(self.model, param_distributions=param_dist)
     
         return self.model
     
