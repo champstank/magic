@@ -14,26 +14,9 @@ docker run --rm latest /bin/sh -c "python demo.py"
 
 ### Example run for text 
 docker run --rm latest /bin/sh -c "python magic/run.py examples/sentiment.tsv"
-___
-```
-This is a text, bag of words model
-classification detected
-Binary detected!
-      f1_score : 0.715870718765  
-      observation_count : 2000  
-      average_precision_score : 0.784650857798  
-      label_balance : 0.508  
-      pearson-r-pval : 7.47151620765e-111  
-      recall_score : 0.73031496063  
-      auc_score : 0.773455504609  
-      pearson-r : 0.470775020384  
-      precision_score : 0.701986754967  
-      confusion_matrix : [[669 315] 
-                         [274 742]]  
-      accuracy : 0.7055 
-Ran in 0.379 seconds 
-___
-```
+
+![alt text](https://github.com/champstank/magic/blob/master/images/text.png "Logo Title Text 1")
+
 #### Output 
 
 ### Example run for regression 
