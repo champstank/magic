@@ -1,11 +1,21 @@
 # imports 
 import re
+import sys
 import nltk
 import time
 import pickle
 import hashlib
+import StringIO
+import urllib, base64
+import itertools
 import numpy as np
 import pandas as pd
+#import seaborn as sns
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+#%matplotlib inline
+#from IPython.core.display import HTML
 from bs4 import BeautifulSoup
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
@@ -18,11 +28,11 @@ import xgboost
 from scipy.stats import pearsonr
 from sklearn.grid_search import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import StratifiedKFold
-from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.model_selection import StratifiedKFold, KFold
+from sklearn import ensemble
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics import roc_auc_score, confusion_matrix, accuracy_score, average_precision_score, f1_score, precision_score, recall_score
+from sklearn.metrics import roc_auc_score, confusion_matrix, accuracy_score, average_precision_score, f1_score, precision_score, recall_score, r2_score, mean_squared_error
 
 
 #====================================  SUPPORTING stateless functions  ==============================================#
@@ -38,7 +48,7 @@ def is_regression(y):
         y_float = np.array(np.array(y,dtype=int),dtype=float)
         return np.sum(np.abs(y_float - y))>0    # Is there an error with int conversion?
     except:
-        return False                            # NOT regression, you through exception i.e. ['cat','dog']
+        return False                            # NOT regression, you throw exception i.e. ['cat','dog']
     
 def hashfile(filename):
     """
@@ -68,13 +78,12 @@ def export_model(model,results,filename):
         True
     """
     basename = filename.split('.')[0]
-    basename = basename.split('/')[-1]  # ignore folder names
     # calculate the hash on filename
     file_hash = hashfile(filename)
     new_filename = basename + '_' + file_hash + '.p'
     pickle.dump([model,results],open(new_filename,'wb'))
     return
-      
+     
 #==============================================  CLASS  ===========================================================#
 class dereksdocker():
     """This class will automate supervised regression & classification workflows"""
@@ -96,11 +105,12 @@ class dereksdocker():
         self.y = None
         self.macro_features = None
         self.micro_features = None
+        self.y_label = None
         self.results = {}
         self.model = None
+        self.y_pred = None
         # run these below to make sure class is ready
-
-
+ 
 
     def file_2_df(self):
         """
@@ -109,23 +119,27 @@ class dereksdocker():
             filename string i.e. file.csv, file.xls
         Returns:
             df pandas.dataframe 
-        """
+        """ 
+        
+        # check if csv file
         if self.filename.split('.')[-1].lower()=='csv':
             print "csv detected"
             self.df = pd.read_csv(self.filename)
             self.data_type='csv'
+        
+        #check if tsv file
         elif self.filename.split('.')[-1].lower()=='tsv':
             print 'text detected'
             df = pd.read_csv(self.filename, sep='\t')
             self.df = df[df.columns[::-1]]
             self.data_type='text'
             print self.df[:2]   #data frame preview
-        elif self.filename.split('.')[-1].lower()=='xls':
+        
+        # else it is an excel file
+        else:
             print "excel detected"
             self.df = pd.read_excel(self.filename)
             self.data_type='excel'
-        else:
-            print filename+": is not supported yet!"
         return self.df
     
     def word_pipeline(self,word):
@@ -162,6 +176,8 @@ class dereksdocker():
 
         # Process input features
         if self.data_type=='text':  
+            
+            # import tools for text
             from sklearn.pipeline import Pipeline
             from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
             from scipy.sparse import hstack
@@ -224,13 +240,16 @@ class dereksdocker():
         y_df = df[target_label]
         y_raw = y_df.as_matrix()
 
+        print '<---------- y_raw ' , y_raw
+        
         if is_regression(y_raw):
             print 'regression detected'
             y = y_raw
         else:
             print 'classification detected'
             y_df_dummy = pd.get_dummies(y_df)
-            y = np.argmax(y_df_dummy.as_matrix(),axis=1)    
+            y = np.argmax(y_df_dummy.as_matrix(),axis=1) 
+            self.y_label = y_df_dummy.columns
 
         self.X = X
         self.y = y
@@ -238,6 +257,7 @@ class dereksdocker():
         self.micro_features = micro_features
         return 
 
+    # scoring metrics
     def scoring(self,y,ypred_class,ypred_prob):
         """
         This function will create a scored dictionary of your predictions
@@ -250,24 +270,32 @@ class dereksdocker():
         """
 
         results={}
-        if len(np.unique(y))>2:
-            print('Multiclass detected!')
-            results['accuracy'] = accuracy_score(y,ypred_class)
-            results['confusion_matrix'] = confusion_matrix(y,ypred_class)
-            results['observation_count'] = len(y)
-        else:   # must be binary
-            print('Binary detected!')
-            results['auc_score'] = roc_auc_score(y,ypred_prob)
-            results['accuracy'] = accuracy_score(y,ypred_class)
-            results['confusion_matrix'] = confusion_matrix(y,ypred_class)
-            results['pearson-r'] = pearsonr(y,ypred_prob)[0]
-            results['pearson-r-pval'] = pearsonr(y,ypred_prob)[1]
-            results['average_precision_score'] = average_precision_score(y,ypred_class)
-            results['f1_score'] = f1_score(y,ypred_class)
-            results['precision_score'] = precision_score(y,ypred_class)
-            results['recall_score'] = recall_score(y,ypred_class)
-            results['observation_count'] = len(y)
-            results['label_balance'] = np.mean(y)
+        if is_regression(y):
+            results['pearson-r'] = pearsonr(y,ypred_class)[0] 
+            results['rmse'] = mean_squared_error(y, ypred_class)**0.5
+            results['r2-score'] = r2_score(y,ypred_class)
+        else:
+            if len(np.unique(y))>2:
+                print('Multiclass detected!')
+                results['accuracy'] = accuracy_score(y,ypred_class)
+                results['confusion_matrix'] = confusion_matrix(y,ypred_class)
+                results['observation_count'] = len(y)
+            else:   # must be binary
+                print('Binary detected!')
+                results['auc_score'] = roc_auc_score(y,ypred_prob)
+                results['accuracy'] = accuracy_score(y,ypred_class)
+                cm = confusion_matrix(y,ypred_class)
+                results['confusion_matrix'] = cm
+                results['pearson-r'] = pearsonr(y,ypred_prob)[0]
+                results['pearson-r-pval'] = pearsonr(y,ypred_prob)[1]
+                results['average_precision_score'] = average_precision_score(y,ypred_class)
+                results['f1_score'] = f1_score(y,ypred_class)
+                results['precision_score'] = precision_score(y,ypred_class)
+                results['recall_score'] = recall_score(y,ypred_class)
+                results['observation_count'] = len(y)
+                results['label_balance'] = np.mean(y)
+                results['normalized-confusion-matrix'] = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        results['plots']={}
         self.results = results
         return self.results
     
@@ -287,20 +315,33 @@ class dereksdocker():
         y = self.y
         model = self.model
         
-        if is_regression(y):
-            # TO DO
-            raise
+        #print '*** model = ' , model
+        ypred_class = np.zeros_like(y,dtype=float)                     # initialize holder array, make sure it is float 
+        ypred_prob = np.zeros_like(y,dtype=float)                      # initialize holder array, make sure it is float 
+           
+        if is_regression(y): 
+            print '========= is regression ============'
+            
+            kf = KFold(n_splits=10)                    
+            for train_index, test_index in kf.split(X, y):
+                X_train, X_test = X[train_index], X[test_index]
+                y_train, y_test = y[train_index], y[test_index]
+                model.fit(X_train,y_train)
+
+                ypred_class[test_index] = model.predict(X_test)   
+             
         else: # must be classification
             skf = StratifiedKFold(n_splits=10)
-            ypred_class = np.zeros_like(y,dtype=float)                     # initialize holder array, make sure it is float 
-            ypred_prob = np.zeros_like(y,dtype=float)                      # initialize holder array, make sure it is float 
             for train_index, test_index in skf.split(X, y):
                 X_train, X_test = X[train_index], X[test_index]
                 y_train, y_test = y[train_index], y[test_index]
                 model.fit(X_train,y_train)
 
                 ypred_class[test_index] = model.predict(X_test)
-                ypred_prob[test_index] = model.predict_proba(X_test)[:,1]  
+                ypred_prob[test_index] = model.predict_proba(X_test)[:,1] 
+        
+        self.y_pred = ypred_class
+        model.fit(X,y)       # training on whole dataset now
         self.model = model
         return self.model, self.scoring(y,ypred_class,ypred_prob)
     
@@ -318,15 +359,25 @@ class dereksdocker():
         y = self.y
         
         if self.speed=='fast':
-            self.model = LogisticRegression()
+            if is_regression(y):
+                self.model = LinearRegression()
+            else:
+                self.model = LogisticRegression()
         else:   # must be fast
             if self.data_type=='text':   # sparse matrix 
-                self.model = xgboost.XGBClassifier()
+                
+                if is_regression(y):
+                    self.model = xgboost.XGBRegressor()
+                else:
+                    self.model = xgboost.XGBClassifier()
             else:
-                self.model = GradientBoostingClassifier()                        # define a model
+                if is_regression(y):
+                    self.model = ensemble.GradientBoostingRegressor()
+                else:
+                    self.model = ensemble.GradientBoostingClassifier()                        # define a model
 
             # HYPER PARAM TUNING
-            # model = gridsearch()...asdf.asf.da
+            # model = gridsearch()
             print 'tuning parameters'
         #---------------------------------------------------------------------------------------------------#
             #param_grid = {
@@ -339,9 +390,81 @@ class dereksdocker():
                 'learning_rate' : [0.0001, 0.001, 0.0015, 0.01, 0.1, 0.15, 0.02, 0.2, 0.03, 0.3]
             }
             self.model = RandomizedSearchCV(self.model, param_distributions=param_dist)
-
+    
         return self.model
     
+    def plot_data(self, plotname=None):
+        if is_regression(self.y):
+            # Create a Figure
+            fig = plt.gcf()
+            # Set up plot
+            plt.title('Linear Prediction')
+            plt.xlabel('Actual')
+            plt.ylabel('Predicted')
+            plt.scatter(self.y,self.y_pred)
+            
+            imgdata = StringIO.StringIO()
+            fig.savefig(imgdata, format='png')
+            imgdata.seek(0)  # rewind the data
+            #print "Content-type: image/png\n"
+            uri = 'data:image/png;base64,' + urllib.quote(base64.b64encode(imgdata.buf))
+            #print '<img src = "%s"/>' % uri
+            self.results['plots'][plotname] = uri
+            plt.close(fig)
+            
+        else:
+            # TO DO
+            return
+    def plot_confusion_matrix(self, plotname=None, normalize=False,title='Confusion matrix',cmap=plt.cm.Blues):
+        """
+        This function prints and plots the confusion matrix.
+        Normalization can be applied by setting `normalize=True`.
+        """
+        cm = self.results['confusion_matrix']
+        #print self.results['plots']
+        classes = self.y_label
+        
+        fig = plt.gcf()
+        plt.imshow(cm, interpolation='nearest', cmap=cmap)
+        plt.title(title)
+        plt.colorbar()
+        tick_marks = np.arange(len(classes))
+        plt.xticks(tick_marks, classes, rotation=45)
+        plt.yticks(tick_marks, classes)
+
+        if normalize:
+            cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+            #print("Normalized confusion matrix")
+        else:
+            pass
+            #print('Confusion matrix, without normalization')
+
+        #print(cm)
+
+        thresh = cm.max() / 2.
+        for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+            plt.text(j, i, cm[i, j],
+                     horizontalalignment="center",
+                     color="white" if cm[i, j] > thresh else "black")
+
+        plt.tight_layout()
+        plt.ylabel('True label')
+        plt.xlabel('Predicted label')
+        plt.grid(False)
+        
+        imgdata = StringIO.StringIO()
+        fig.savefig(imgdata, format='png')
+        imgdata.seek(0)  # rewind the data
+        #print "Content-type: image/png\n"
+        uri = 'data:image/png;base64,' + urllib.quote(base64.b64encode(imgdata.buf))
+        #print '<img src = "%s"/>' % uri
+        self.results['plots'][plotname] = uri
+        plt.close(fig)
+        
+    def putHTML(self, uri):
+        source = '<img src = "%s"/>' % uri
+        return HTML(source)    
+
     def run(self):
         """
         This function will run entire workflow for prediction from file to model + results
@@ -358,9 +481,26 @@ class dereksdocker():
 
         train_model, results = self.train_and_validate()        # train model, cross validate and score
         for key in results:
-            print "     ",key,":",results[key]
-
+            #print key,type(results[key])
+            if ('numpy.ndarray' in str(type(self.results[key]))) or ('dict' in str(type(self.results[key]))):
+                #print "     ",key,":", results[key]
+                pass
+            else:
+                if 'plot' in key.lower():
+                    pass
+                else:
+                    print "     ",key,":", round(self.results[key],3)
+                
+        # Plot data
+        if is_regression(self.y):
+            self.plot_data(plotname='plot1')
+            #self.putHTML(results['plots'])
+        else:
+            self.plot_confusion_matrix(plotname='plot1')
+            self.plot_confusion_matrix(plotname='plot2',normalize=True)
+            #self.putHTML(self.results['plots'])
+        
         export_model(train_model,results, self.filename)                 # save model to disk
         run_time = time.time() - start_time
         print "Ran in %.3f seconds" % run_time
-        return True
+        return self.results

@@ -4,7 +4,7 @@ FROM ubuntu:16.04
 # Install Python.
 RUN \
   apt-get update && \
-  apt-get install -y wget vim python python-dev python-pip python-virtualenv 
+  apt-get install -y wget vim python python-dev python-pip python-virtualenv python-tk
 
 # Python setup
 RUN pip install -U pip
@@ -18,6 +18,7 @@ WORKDIR /data
 RUN wget https://raw.githubusercontent.com/champstank/magic/master/dereksdocker.py
 RUN wget https://raw.githubusercontent.com/champstank/magic/master/run.py 
 #ADD run.py .
+RUN echo "test"
 COPY examples /data/examples 
 
 # Download NLTK requirements

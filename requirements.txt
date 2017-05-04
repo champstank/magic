@@ -14,3 +14,5 @@ vaderSentiment==2.5
 virtualenv==15.0.1
 xgboost==0.6a2
 xlrd
+matplotlib
+
