@@ -14,27 +14,9 @@ docker run --rm latest /bin/sh -c "python demo.py"
 
 ### Example run for text 
 docker run --rm latest /bin/sh -c "python magic/run.py examples/sentiment.tsv"
-___
-```
-This is a text, bag of words model
-classification detected
-Binary detected!
-      f1_score : 0.715870718765  
-      observation_count : 2000  
-      average_precision_score : 0.784650857798  
-      label_balance : 0.508  
-      pearson-r-pval : 7.47151620765e-111  
-      recall_score : 0.73031496063  
-      auc_score : 0.773455504609  
-      pearson-r : 0.470775020384  
-      precision_score : 0.701986754967  
-      confusion_matrix : [[669 315] 
-                         [274 742]]  
-      accuracy : 0.7055 
-Ran in 0.379 seconds 
-___
-```
+
 #### Output 
+<img src="https://github.com/champstank/magic/blob/master/images/text.png" width="350" height="250">
 
 ### Example run for regression 
 docker run --rm latest /bin/sh -c "python magic/run.py examples/auto-mgp.csv"
@@ -45,19 +27,4 @@ docker run --rm latest /bin/sh -c "python magic/run.py examples/auto-mgp.csv"
 docker run --rm latest /bin/sh -c "python magic/run.py examples/loan_approval.csv"
 
 #### Output
-___
-Binary detected! 
-      f1_score : 0.385656924083
-      observation_count : 32560
-      average_precision_score : 0.580384394898
-      label_balance : 0.240816953317
-      pearson-r-pval : 0.0
-      recall_score : 0.2633592654
-      auc_score : 0.584439602342
-      pearson-r : 0.326881600096
-      precision_score : 0.720013947001
-      confusion_matrix : [[23916   803]
-                         [ 5776  2065]]
-      accuracy : 0.797942260442
-Ran in 5.348 seconds
-___
+<img src="https://github.com/champstank/magic/blob/master/images/text.png" width="350" height="250">
