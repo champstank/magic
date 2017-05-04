@@ -15,7 +15,7 @@ docker run --rm latest /bin/sh -c "python demo.py"
 ### Example run for text 
 docker run --rm latest /bin/sh -c "python magic/run.py examples/sentiment.tsv"
 
-<img src="https://github.com/champstank/magic/blob/master/images/text.png" width="250" height="250">
+<img src="https://github.com/champstank/magic/blob/master/images/text.png" width="350" height="250">
 
 #### Output 
 
