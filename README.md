@@ -22,7 +22,7 @@ docker run --rm latest /bin/sh -c "python magic/run.py examples/sentiment.tsv"
 docker run --rm latest /bin/sh -c "python magic/run.py examples/auto-mgp.csv"
 
 #### Output
-<img src="https://github.com/champstank/magic/blob/master/images/regression.png" width="150" height="200">
+<img src="https://github.com/champstank/magic/blob/master/images/regression.png" width="150" height="150">
 
 ### Example run for classification
 docker run --rm latest /bin/sh -c "python magic/run.py examples/loan_approval.csv"
