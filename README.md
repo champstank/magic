@@ -15,7 +15,7 @@ docker run --rm latest /bin/sh -c "python demo.py"
 ### Example run for text 
 docker run --rm latest /bin/sh -c "python magic/run.py examples/sentiment.tsv"
 
-![alt text](https://github.com/champstank/magic/blob/master/images/text.png "Logo Title Text 1")
+![alt text](https://github.com/champstank/magic/blob/master/images/text.png =250x250)
 
 #### Output 
 
