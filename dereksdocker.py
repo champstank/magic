@@ -240,8 +240,6 @@ class dereksdocker():
         y_df = df[target_label]
         y_raw = y_df.as_matrix()
 
-        print '<---------- y_raw ' , y_raw
-        
         if is_regression(y_raw):
             print 'regression detected'
             y = y_raw
@@ -320,7 +318,6 @@ class dereksdocker():
         ypred_prob = np.zeros_like(y,dtype=float)                      # initialize holder array, make sure it is float 
            
         if is_regression(y): 
-            print '========= is regression ============'
             
             kf = KFold(n_splits=10)                    
             for train_index, test_index in kf.split(X, y):
