@@ -15,7 +15,7 @@ docker run --rm latest /bin/sh -c "python demo.py"
 ### Example run for text 
 docker run --rm latest /bin/sh -c "python magic/run.py examples/sentiment.tsv"
 
-![](https://github.com/champstank/magic/blob/master/images/text.png | width="250")
+![](https://github.com/champstank/magic/blob/master/images/text.png)
 
 #### Output 
 
