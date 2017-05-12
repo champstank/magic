@@ -76,7 +76,7 @@ def export_model(model,results,filename):
     return
       
 #==============================================  CLASS  ===========================================================#
-class dereksdocker():
+class data_magic():
     """This class will automate supervised regression & classification workflows"""
     
     def __init__(self,speed='fast',filename='None'):
@@ -127,7 +127,13 @@ class dereksdocker():
         else:
             print filename+": is not supported yet!"
         return self.df
-    
+
+    def null_check(self,df):
+        if df.isnull().values.any():
+            from sklearn.preprocessing import Imputer
+            imputer = Imputer()
+
+
     def word_pipeline(self,word):
         """This function preprocesses the text to get ready for count vectorizer
         Params:
@@ -135,7 +141,7 @@ class dereksdocker():
         Returns:
             word string processed word
         """
-        word = BeautifulSoup(word,"html5lib").get_text()       
+        #word = BeautifulSoup(word,"html5lib").get_text()       
         word = re.sub("[^a-zA-Z]", " ", word) 
         word = word.lower() 
         word = self.stemmer.stem(word)
@@ -291,14 +297,14 @@ class dereksdocker():
         ypred_prob = np.zeros_like(y,dtype=float)             
         if is_regression(y):
             from sklearn.model_selection import KFold
-            skf = KFold(n_splits=10)
+            skf = KFold(n_splits=10, random_state=16)
             for train_index, test_index in skf.split(X):
                 X_train, X_test = X[train_index], X[test_index]
                 y_train, y_test = y[train_index], y[test_index]
                 model.fit(X_train,y_train)
                 ypred_class[test_index] = model.predict(X_test)
         else: # must be classification
-            skf = StratifiedKFold(n_splits=10)
+            skf = StratifiedKFold(n_splits=10, random_state=16)
             for train_index, test_index in skf.split(X, y):
                 X_train, X_test = X[train_index], X[test_index]
                 y_train, y_test = y[train_index], y[test_index]
@@ -325,11 +331,14 @@ class dereksdocker():
         if self.speed=='fast':
             self.model = LogisticRegression()
         else:   # must be fast
-            if self.data_type=='text':   # sparse matrix 
-                self.model = xgboost.XGBClassifier()
-            else:
-                self.model = GradientBoostingClassifier()                        # define a model
+            if self.data_type=='text':
+                from scipy.sparse import csc_matrix
+                self.X = csc_matrix(self.X)
 
+            self.model = LogisticRegression()
+            #self.model = xgboost.XGBClassifier()
+        
+        '''
             # HYPER PARAM TUNING
             # model = gridsearch()...asdf.asf.da
             print 'tuning parameters'
@@ -341,10 +350,12 @@ class dereksdocker():
             #model = GridSearchCV(model, param_grid=param_grid)
         #---------------------------------------------------------------------------------------------------#
             param_dist = {
-                'learning_rate' : [0.0001, 0.001, 0.0015, 0.01, 0.1, 0.15, 0.02, 0.2, 0.03, 0.3]
+                'learning_rate' : [0.0001, 0.001, 0.0015, 0.01, 0.1, 0.15, 0.02, 0.2, 0.03, 0.3],
+                'n_estimators' : np.arange(50,250,50)
             }
-            self.model = RandomizedSearchCV(self.model, param_distributions=param_dist)
-
+            n_iter_search = 10
+            self.model = RandomizedSearchCV(self.model, param_distributions=param_dist, cv=10, n_iter=n_iter_search, verbose=6)
+        '''
         return self.model
     
     def run(self):

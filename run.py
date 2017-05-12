@@ -1,4 +1,4 @@
-from dereksdocker import dereksdocker
+from data_magic import data_magic
 import sys
 
 filename = sys.argv[1]
@@ -8,4 +8,4 @@ if len(sys.argv)>2:
 else:
     speed ='fast'
 
-dereksdocker(filename=filename,speed=speed).run()
+data_magic(filename=filename,speed=speed).run()
