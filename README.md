@@ -15,19 +15,19 @@ sh magic.sh examples/text_sentiment.tsv
 ## Supports models for text, regression and classification
 
 ### Example run for text 
-docker run --rm latest /bin/sh -c "python magic/run.py examples/sentiment.tsv"
+sh magic.sh examples/sentiment.tsv"
 
 #### Output 
 <img src="https://github.com/champstank/magic/blob/master/images/text.png" width="350" height="250">
 
 ### Example run for regression 
-docker run --rm latest /bin/sh -c "python magic/run.py examples/auto-mgp.csv"
+sh magic.sh examples/auto-mgp.csv"
 
 #### Output
 <img src="https://github.com/champstank/magic/blob/master/images/regression.png" width="150" height="100">
 
 ### Example run for classification
-docker run --rm latest /bin/sh -c "python magic/run.py examples/loan_approval.csv"
+sh magic.sh examples/loan_approval.csv"
 
 #### Output
 <img src="https://github.com/champstank/magic/blob/master/images/text.png" width="350" height="250">
