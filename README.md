@@ -8,7 +8,9 @@ Open terminal and go to where you want the file to be cloned to locally
 ```git clone https://github.com/champstank/magic.git```
 
 ### How to run demo
-docker run --rm latest /bin/sh -c "python demo.py"
+git clone https://github.com/champstank/magic.git
+cd magic/
+sh magic.sh examples/text_sentiment.tsv
 
 ## Supports models for text, regression and classification
 
