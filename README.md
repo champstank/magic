@@ -4,10 +4,10 @@ Automagic data science
 ## How to Install
 Open terminal and go to where you want the file to be cloned to locally
 
-### Paste this command into terminal
+### Paste this command into terminal to install locally
 ```git clone https://github.com/champstank/magic.git```
 
-### How to run demo
+### How to install and run demo
 git clone https://github.com/champstank/magic.git  
 cd magic/  
 sh magic.sh examples/text_sentiment.tsv  
