@@ -1,14 +1,16 @@
-from dereksdocker import dereksdocker
 import glob
 import time
 import numpy as np
+import magic
 
 filenames = glob.glob('examples/*')
 
 success=[]
 start_time = time.time()
 for filename in filenames:
-  status = dereksdocker(filename=filename).run()
+  print()
+  print("Filename:::::::::",filename)
+  status = magic.run(filename=filename)
   success.append(status)
 success = np.array(success)  # needed for counts later
 end_time = time.time()
